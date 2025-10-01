@@ -1,0 +1,209 @@
+// =====================================================
+// Prisma Schema - Sepresac SaaS
+// =====================================================
+
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "linux-musl-arm64-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// =====================================================
+// Usuarios y Autenticación
+// =====================================================
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String?
+  password  String
+  avatar    String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relaciones
+  ownedProjects     Project[]     @relation("ProjectOwner")
+  projectMemberships ProjectMember[]
+  createdEvents     Event[]       @relation("EventCreator")
+  notifications     Notification[]
+
+  @@map("users")
+}
+
+// =====================================================
+// Proyectos
+// =====================================================
+
+model Project {
+  id          String      @id @default(cuid())
+  name        String
+  description String?
+  status      ProjectStatus @default(ACTIVE)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  // Relaciones
+  ownerId String
+  owner   User   @relation("ProjectOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  
+  members    ProjectMember[]
+  events     Event[]
+  contacts   Contact[]
+
+  @@map("projects")
+}
+
+model ProjectMember {
+  id        String   @id @default(cuid())
+  role      ProjectRole @default(MEMBER)
+  joinedAt  DateTime @default(now())
+
+  // Relaciones
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  projectId String
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, projectId])
+  @@map("project_members")
+}
+
+// =====================================================
+// Eventos
+// =====================================================
+
+model Event {
+  id          String      @id @default(cuid())
+  title       String
+  description String?
+  startDate   DateTime
+  endDate     DateTime?
+  location    String?
+  status      EventStatus @default(PLANNED)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  // Relaciones
+  projectId String
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  
+  creatorId String
+  creator   User    @relation("EventCreator", fields: [creatorId], references: [id])
+  
+  contacts     EventContact[]
+  postEventReport PostEventReport?
+
+  @@map("events")
+}
+
+model EventContact {
+  id        String   @id @default(cuid())
+  role      String?  // Rol del contacto en el evento
+  notes     String?  // Notas específicas del evento
+  confirmed Boolean  @default(false)
+  attended  Boolean? // null = no confirmado, true = asistió, false = no asistió
+
+  // Relaciones
+  eventId   String
+  event     Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  
+  contactId String
+  contact   Contact  @relation(fields: [contactId], references: [id], onDelete: Cascade)
+
+  @@unique([eventId, contactId])
+  @@map("event_contacts")
+}
+
+model PostEventReport {
+  id          String   @id @default(cuid())
+  attendees   Int      @default(0)
+  summary     String?
+  photoLinks  String?  // JSON array de links
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relaciones
+  eventId String @unique
+  event   Event  @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  @@map("post_event_reports")
+}
+
+// =====================================================
+// Contactos
+// =====================================================
+
+model Contact {
+  id           String   @id @default(cuid())
+  name         String
+  email        String?
+  phone        String?
+  organization String?
+  position     String?
+  notes        String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // Relaciones
+  projectId String
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  
+  eventContacts EventContact[]
+
+  @@map("contacts")
+}
+
+// =====================================================
+// Notificaciones
+// =====================================================
+
+model Notification {
+  id        String           @id @default(cuid())
+  type      NotificationType
+  title     String
+  message   String
+  read      Boolean          @default(false)
+  createdAt DateTime         @default(now())
+
+  // Relaciones
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("notifications")
+}
+
+// =====================================================
+// Enums
+// =====================================================
+
+enum ProjectStatus {
+  ACTIVE
+  ARCHIVED
+}
+
+enum ProjectRole {
+  OWNER
+  CO_OWNER
+  MEMBER
+}
+
+enum EventStatus {
+  PLANNED
+  CONFIRMED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+enum NotificationType {
+  PROJECT_INVITATION
+  EVENT_CREATED
+  EVENT_UPDATED
+  EVENT_REMINDER
+  CONTACT_ADDED
+}

@@ -1,0 +1,83 @@
+# =====================================================
+# Docker Compose - Sepresac SaaS (Next.js + PostgreSQL + Redis)
+# =====================================================
+
+version: '3.8'
+
+services:
+  # Base de datos PostgreSQL
+  postgres:
+    image: postgres:16-alpine
+    container_name: sepresac-postgres
+    ports:
+      - "5435:5432"
+    environment:
+      POSTGRES_DB: sepresac
+      POSTGRES_USER: sepresac
+      POSTGRES_PASSWORD: sepresac_password_2024
+      POSTGRES_INITDB_ARGS: "--encoding=UTF-8 --lc-collate=C --lc-ctype=C"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/init:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U sepresac -d sepresac"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    restart: unless-stopped
+    networks:
+      - sepresac-network
+
+  # Redis para caché y sesiones
+  redis:
+    image: redis:7-alpine
+    container_name: sepresac-redis
+    ports:
+      - "6381:6379"
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+    networks:
+      - sepresac-network
+
+  # Aplicación Next.js
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: sepresac-app
+    ports:
+      - "3002:3000"
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=postgresql://sepresac:sepresac_password_2024@postgres:5432/sepresac
+      - REDIS_URL=redis://redis:6379
+      - NEXTAUTH_SECRET=sepresac_nextauth_secret_2024
+      - NEXTAUTH_URL=https://sepresac.pontegeek.com
+      - NEXT_PUBLIC_APP_URL=https://sepresac.pontegeek.com
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    restart: unless-stopped
+    networks:
+      - sepresac-network
+    volumes:
+      - app_uploads:/app/uploads
+      - app_logs:/app/logs
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  app_uploads:
+    driver: local
+  app_logs:
+    driver: local
+
+networks:
+  sepresac-network:
+    driver: bridge
