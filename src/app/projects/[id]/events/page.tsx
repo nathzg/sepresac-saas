@@ -364,8 +364,7 @@ export default function ProjectEventsPage() {
                 eventClick={(info) => {
                   const event = events.find(e => e.id === info.event.id)
                   if (event) {
-                    // Aquí podrías abrir un modal con los detalles del evento
-                    toast.info(`Evento: ${event.title}`)
+                    router.push(`/projects/${projectId}/events/${event.id}`)
                   }
                 }}
                 height="auto"

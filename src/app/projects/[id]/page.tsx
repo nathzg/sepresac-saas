@@ -358,7 +358,7 @@ export default function ProjectDetailPage() {
                           </p>
                         </div>
                         <div className="flex space-x-2">
-                          <Link href={`/projects/${projectId}/events`}>
+                          <Link href={`/projects/${projectId}/events/${event.id}`}>
                             <Button size="sm" variant="outline">
                               Ver
                             </Button>

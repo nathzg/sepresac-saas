@@ -447,7 +447,7 @@ export default function DashboardPage() {
                           </div>
                         </div>
                         <div className="flex-shrink-0">
-                          <Link href={`/projects/${event.project.id}`}>
+                          <Link href={`/projects/${event.project.id}/events/${event.id}`}>
                             <Button size="sm" variant="outline">
                               Ver
                             </Button>

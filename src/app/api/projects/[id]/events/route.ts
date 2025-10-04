@@ -25,6 +25,9 @@ export async function GET(
     }
 
     const { id: projectId } = await params
+    const { searchParams } = new URL(request.url)
+    const exclude = searchParams.get('exclude')
+    const limit = parseInt(searchParams.get('limit') || '50')
 
     // Verificar acceso al proyecto
     const project = await prisma.project.findFirst({
@@ -51,10 +54,19 @@ export async function GET(
     }
 
     // Obtener eventos
+    const whereClause: any = {
+      projectId: projectId
+    }
+
+    // Excluir evento específico si se proporciona
+    if (exclude) {
+      whereClause.id = {
+        not: exclude
+      }
+    }
+
     const events = await prisma.event.findMany({
-      where: {
-        projectId: projectId
-      },
+      where: whereClause,
       include: {
         creator: {
           select: {
@@ -84,7 +96,8 @@ export async function GET(
       },
       orderBy: {
         startDate: 'asc'
-      }
+      },
+      take: limit
     })
 
     return NextResponse.json({ events })

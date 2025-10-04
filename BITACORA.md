@@ -375,6 +375,27 @@
 
 ## 🔄 ACTUALIZACIONES
 
+### 2024-10-01 - Análisis de Errores
+- 🚨 **ERROR CRÍTICO IDENTIFICADO**: Inconsistencia en tipos de notificaciones
+  - **Problema**: El esquema de Prisma define `NotificationType` con valores específicos (`PROJECT_INVITATION`, `EVENT_CREATED`, etc.)
+  - **Error**: El código usa tipos genéricos (`INFO`, `SUCCESS`, `WARNING`, `ERROR`) que no existen en el enum
+  - **Ubicación**: 
+    - `src/app/api/notifications/route.ts` (líneas 51, 54, 57, 60, 66, 69, 72, 75, 125)
+    - `src/lib/demo-project.ts` (líneas 112, 119, 126)
+  - **Impacto**: Errores de validación de Prisma en tiempo de ejecución
+  - **Solución requerida**: Actualizar el esquema de Prisma o corregir el código para usar los tipos correctos
+
+- ⚠️ **ADVERTENCIA**: Docker Compose version obsoleta
+  - **Problema**: El atributo `version` en docker-compose.yml está obsoleto
+  - **Ubicación**: `docker-compose.yml` línea 5
+  - **Impacto**: Advertencias en logs, no crítico
+  - **Solución**: Remover la línea `version: '3.8'`
+
+- ✅ **Servicios funcionando correctamente**:
+  - PostgreSQL: Conectado y operativo
+  - Redis: Funcionando con persistencia
+  - Aplicación Next.js: Ejecutándose en puerto 3002
+
 ### 2024-09-30
 - ✅ Creada bitácora de desarrollo
 - ✅ Plan de mejoras UX definido
@@ -394,7 +415,88 @@
   - ✅ Invitación de equipo (opcional)
 - ✅ Documentación del proyecto completada
 
+### 2024-10-02 - Modal de Crear Evento en Detalles
+- ✅ **NUEVA FUNCIONALIDAD**: Botón "Nuevo Evento" con modal en página de detalles
+  - **Ubicación**: `src/app/projects/[id]/events/[eventId]/page.tsx`
+  - **Características**:
+    - Botón "Nuevo Evento" en el header de la página
+    - Modal de creación de evento sin cambiar de página
+    - Formulario completo con validación
+    - Campos: título, descripción, fecha inicio, fecha fin, ubicación
+    - Validación de campos requeridos (título y fecha inicio)
+    - Recarga automática de eventos relacionados después de crear
+    - Toast notifications para feedback
+    - Botones de cancelar y crear evento
+- ✅ **UX MEJORADA**: Creación de eventos sin navegación
+  - **Funcionalidad**: El usuario puede crear eventos directamente desde la vista de detalles
+  - **Beneficio**: No interrumpe el flujo de navegación del usuario
+  - **Integración**: Se actualiza automáticamente la lista de eventos relacionados
+
+### 2024-10-02 - Eventos Relacionados en Detalles
+- ✅ **NUEVA FUNCIONALIDAD**: Sección de eventos relacionados en página de detalles
+  - **Ubicación**: `src/app/projects/[id]/events/[eventId]/page.tsx`
+  - **Características**:
+    - Lista de otros eventos del mismo proyecto
+    - Excluye el evento actual de la lista
+    - Muestra hasta 5 eventos relacionados
+    - Botón "Ver" que lleva a detalles del evento relacionado
+    - Botón "Ver todos los eventos" si hay más de 5
+    - Información básica: título, fecha, ubicación, creador, contactos
+    - Diseño responsive con hover effects
+- ✅ **API MEJORADA**: Soporte para eventos relacionados
+  - **Ubicación**: `src/app/api/projects/[id]/events/route.ts`
+  - **Nuevos parámetros**:
+    - `exclude`: ID del evento a excluir
+    - `limit`: Número máximo de eventos a retornar
+  - **Funcionalidad**: Filtrado y limitación de resultados
+- ✅ **NAVEGACIÓN MEJORADA**: Botones "Ver" en eventos relacionados
+  - **Funcionalidad**: Cada evento relacionado tiene botón "Ver" que lleva a sus detalles
+  - **UX**: Navegación fluida entre eventos del mismo proyecto
+
+### 2024-10-02 - Revisión de Logs y Errores
+- 🚨 **ERROR CRÍTICO PERSISTENTE**: Inconsistencia en tipos de notificaciones
+  - **Estado**: Error sigue ocurriendo en tiempo de ejecución
+  - **Frecuencia**: Múltiples ocurrencias por hora
+  - **Impacto**: Fallos en la carga de notificaciones del dashboard
+  - **Usuario afectado**: Administrador (admin@sepresac.com)
+  - **Error específico**: 
+    ```
+    Invalid value for argument `type`. Expected NotificationType.
+    Error fetching notifications: Error [PrismaClientValidationError]
+    ```
+  - **Acción requerida**: URGENTE - Corregir tipos de notificaciones
+
+- ⚠️ **ADVERTENCIA PERSISTENTE**: Docker Compose version obsoleta
+  - **Estado**: Advertencia aparece en cada comando docker-compose
+  - **Impacto**: Logs contaminados con advertencias
+  - **Solución**: Remover `version: '3.8'` de docker-compose.yml
+
+- ✅ **SERVICIOS ESTABLES**: 
+  - PostgreSQL: Funcionando correctamente (healthy)
+  - Redis: Operativo con persistencia
+  - Aplicación Next.js: Ejecutándose en puerto 3002
+  - Otros servicios: Sin errores detectados
+
+### 2024-10-01 - Página de Detalles de Evento
+- ✅ **NUEVA FUNCIONALIDAD**: Página de detalles de evento individual
+  - **Ubicación**: `src/app/projects/[id]/events/[eventId]/page.tsx`
+  - **Características**:
+    - Vista completa del evento con información detallada
+    - Información del creador del evento
+    - Lista de contactos invitados
+    - Estadísticas del evento
+    - Acciones rápidas (editar, gestionar contactos, ver proyecto)
+    - Navegación de regreso a eventos del proyecto
+    - Responsive design completo
+- ✅ **NAVEGACIÓN MEJORADA**: Botones "Ver" actualizados
+  - **Dashboard**: Botón "Ver" ahora lleva a detalles del evento
+  - **Página de proyecto**: Botón "Ver" ahora lleva a detalles del evento
+  - **Calendario**: Click en evento ahora lleva a detalles del evento
+- ✅ **UX MEJORADA**: Navegación más intuitiva y consistente
+
 ### Próxima Actualización
+- [ ] **PRIORIDAD ALTA**: Corregir tipos de notificaciones
+- [ ] **PRIORIDAD MEDIA**: Actualizar docker-compose.yml
 - [ ] Mejoras específicas por pantalla
 - [ ] Microinteracciones avanzadas
 - [ ] Responsive UX optimizado
