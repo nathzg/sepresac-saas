@@ -584,13 +584,13 @@ Este proyecto está bajo la Licencia MIT. Ver el archivo `LICENSE` para más det
 
 ## 👥 Equipo
 
-- **Desarrollador Principal**: [Tu Nombre]
-- **Diseño UI/UX**: [Diseñador]
-- **DevOps**: [DevOps Engineer]
+- **Desarrollador Principal**: Nathz Guardia
+- **Diseño UI/UX**: Nathz Guardia 
+- **DevOps**: Nathz Guardia 
 
 ## 📞 Soporte
 
-- **Email**: soporte@pontegeek.com
+- **Email**: nathzg@pontegeek.com
 - **Documentación**: [Link a documentación]
 - **Issues**: [Link a GitHub Issues]
 
